@@ -10,7 +10,6 @@ source $DIR/.virtualenv/bin/activate
 pip install -r $DIR/requirements.txt
 
 pip install --editable $DIR
-$DIR/bash-complete.sh
 
 echo "
 In your current shell:
