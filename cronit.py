@@ -54,10 +54,10 @@ def update(arn, name):
 		logger.info('%s: %s' % (i, ec2_tuple))
 		for i, cron_expression in enumerate(ec2_tuple[1]):
 			event_rule_name, event_rule = put_event_rule('start', ec2_tuple[0], cron_expression, i)
-			put_event_target(event_rule_name=event_rule_name, id=name, arn=arn)
+			put_event_target(event_rule_name=event_rule_name, target_id=name, target_arn=arn)
 		for i, cron_expression in enumerate(ec2_tuple[2]):
 			event_rule_name, event_rule = put_event_rule('stop', ec2_tuple[0], cron_expression, i)
-			put_event_target(event_rule_name=event_rule_name, id=name, arn=arn)
+			put_event_target(event_rule_name=event_rule_name, target_id=name, target_arn=arn)
 	# TODO: remove old schedules / unused
 
 if __name__ == "__main__":
