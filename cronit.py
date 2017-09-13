@@ -52,7 +52,7 @@ def cli(log_level):
 	logger.setLevel(log_level)
 	pass
 
-@cli.command(name='sync', help='Sync all cronit schedules')
+@cli.command(name='sync', help='Sync all cronit lambda fucntion schedules')
 @click.option('--arn', help='Lambda function ARN (arn:aws:lambda:[region]:[id]:function:[name])')
 @click.option('--name', default='cronit', help='Lambda function name (default is cronit)')
 def sync(arn, name):
@@ -86,16 +86,21 @@ def sync(arn, name):
 	logger.info('Found %s EC2 instances with cronit tags' % len(ec2_instances))
 
 	for i, ec2_instance in enumerate(ec2_instances):
+
 		ec2_tuple = (
 			ec2_instance['InstanceId'],
 			map(lambda tag: tag['Value'], filter(lambda tag: tag['Key'] == 'cronit:start', ec2_instance['Tags'])),
 			map(lambda tag: tag['Value'], filter(lambda tag: tag['Key'] == 'cronit:stop', ec2_instance['Tags']))
 		)
 		logger.info('%s: %s' % (i, ec2_tuple))
+
+		# TODO: remove duplicated crons
+
 		for i, cron_expression in enumerate(ec2_tuple[1]):
 			event_rule_name, event_rule = put_event_rule('start', ec2_tuple[0], cron_expression, i)
 			event_target = put_event_target(event_rule_name=event_rule_name, target_id=name, target_arn=arn)
 			add_lambda_trigger(name, event_rule_name, event_rule['RuleArn'])
+
 		for i, cron_expression in enumerate(ec2_tuple[2]):
 			event_rule_name, event_rule = put_event_rule('stop', ec2_tuple[0], cron_expression, i)
 			put_event_target(event_rule_name=event_rule_name, target_id=name, target_arn=arn)

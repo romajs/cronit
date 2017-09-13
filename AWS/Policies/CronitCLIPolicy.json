@@ -1,0 +1,21 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "events:ListRules",
+                "events:PutRule",
+                "events:DeleteRule",
+                "events:PutTargets",
+                "events:RemoveTargets",
+                "lambda:AddPermission",
+                "lambda:RemovePermission"
+            ],
+            "Resource": [
+                "arn:aws:events:{region}:{accountId}:rule/*",
+                "arn:aws:lambda:{region}:{accountId}:function:cronit"
+            ]
+        }
+    ]
+}
