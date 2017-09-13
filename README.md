@@ -1,7 +1,24 @@
 cronit
 ======
 
+AWS Lambda function to start and stop EC2 instances based on their cron tags.
+
+*This method aims to have greater flexibility, to change scheduling times, without having to manually and directly change the schedules, and / or IDs of your EC2 instances*
+
+Once configured, it is only necessary to define the following tags in your EC2 instances
+
+For example:
+
+Name         | Value
+-------------|--------------------
+cronit:start | 0 11 ? * MON-FRI *
+cronit:stop  | 0 22 ? * MON-FRI *
+
+And then run the CLI synchronization. *(every time you change your cronit tags)*
+
 ## CLI
+
+This CLI can sync all your lambda function schedules to start and stop EC2 instances
 
 ### Requirements
 
@@ -97,6 +114,8 @@ Commands:
 Then execute as `cronit` only
 
 ## AWS Lambda
+
+The actual function that start and stop instances based on your schedules
 
 ### Permissions
 
