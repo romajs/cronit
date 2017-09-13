@@ -9,6 +9,7 @@ logger = logging.getLogger('cronit')
 
 ec2_client = boto3.client('ec2')
 events_client = boto3.client('events')
+lambda_client = boto3.client('lambda')
 
 def get_ec2_instances():
 	ec2_instances = ec2_client.describe_instances(Filters=[
@@ -33,23 +34,31 @@ def put_event_target(event_rule_name, target_id, target_arn):
 	logger.debug('%s: %s' % (event_rule_name, event_target))
 	return event_target
 
+def add_lambda_trigger(function_name, event_rule_name, event_rule_arn):
+	logger.info('Adding trigger %s to target %s' % (event_rule_name, function_name))
+	lambda_permission = lambda_client.add_permission(
+		Action='lambda:InvokeFunction',
+		FunctionName=function_name,
+		Principal='events.amazonaws.com',
+		SourceArn=event_rule_arn,
+		StatementId=event_rule_name,
+	)
+	logger.debug(lambda_permission)
+	return lambda_permission
+
 @click.group()
 @click.option('--log-level', default='INFO', help='Set logging level')
 def cli(log_level):
 	logger.setLevel(log_level)
 	pass
 
-@cli.command(name='update', help='Update all cronit schedules')
+@cli.command(name='sync', help='Sync all cronit schedules')
 @click.option('--arn', help='Lambda function ARN (arn:aws:lambda:[region]:[id]:function:[name])')
 @click.option('--name', default='cronit', help='Lambda function name (default is cronit)')
-def update(arn, name):
+def sync(arn, name):
 
 	logger.debug('AWS Lambda Function ARN: %s' % arn)
 	logger.debug('AWS Lambda Function Name: %s' % name)
-
-	ec2_instances = get_ec2_instances()
-	logger.debug(ec2_instances)
-	logger.info('Found %s EC2 instances with cronit tags' % len(ec2_instances))
 
 	cronit_rules = events_client.list_rules(NamePrefix='cronit')['Rules']
 	logger.debug(cronit_rules)
@@ -65,6 +74,17 @@ def update(arn, name):
 		response = events_client.delete_rule(Name=rule['Name'])
 		logger.debug(response)
 
+		logger.info('Deleting trigger %d: %s' % (i, rule['Name']))
+		response = lambda_client.remove_permission(
+			FunctionName=name,
+			StatementId=rule['Name'],
+		)
+		logger.debug(response)
+
+	ec2_instances = get_ec2_instances()
+	logger.debug(ec2_instances)
+	logger.info('Found %s EC2 instances with cronit tags' % len(ec2_instances))
+
 	for i, ec2_instance in enumerate(ec2_instances):
 		ec2_tuple = (
 			ec2_instance['InstanceId'],
@@ -74,10 +94,12 @@ def update(arn, name):
 		logger.info('%s: %s' % (i, ec2_tuple))
 		for i, cron_expression in enumerate(ec2_tuple[1]):
 			event_rule_name, event_rule = put_event_rule('start', ec2_tuple[0], cron_expression, i)
-			put_event_target(event_rule_name=event_rule_name, target_id=name, target_arn=arn)
+			event_target = put_event_target(event_rule_name=event_rule_name, target_id=name, target_arn=arn)
+			add_lambda_trigger(name, event_rule_name, event_rule['RuleArn'])
 		for i, cron_expression in enumerate(ec2_tuple[2]):
 			event_rule_name, event_rule = put_event_rule('stop', ec2_tuple[0], cron_expression, i)
 			put_event_target(event_rule_name=event_rule_name, target_id=name, target_arn=arn)
+			add_lambda_trigger(name, event_rule_name, event_rule['RuleArn'])
 
 if __name__ == "__main__":
 	cli()

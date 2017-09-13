@@ -11,7 +11,7 @@ Options:
   --help            Show this message and exit.
 
 Commands:
-  update  Update all cronit schedules
+  sync  Update all cronit schedules
 ```
 
 ## Execution
