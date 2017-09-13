@@ -70,7 +70,6 @@ Create the role **CronitCLIRole** with the following:
 }
 ```
 
-
 ### Execution
 
 Can be executed both as `./cronit.py` and `cronit`, but then it is needed to run:
@@ -126,7 +125,10 @@ Create the role **CronitLambdaExecutionRole** with the following:
 }
 ```
 
-
 ### Configuration
 
 * TODO
+
+### Build distribution
+
+`./build-dist.sh`

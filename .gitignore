@@ -1,6 +1,5 @@
 *.pyc
 *.sublime-workspace
-*.zip
 .virtualenv
 cronit.egg-info
 lib
