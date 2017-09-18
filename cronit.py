@@ -53,12 +53,17 @@ def cli(log_level):
 	pass
 
 @cli.command(name='sync', help='Sync all cronit lambda fucntion schedules')
-@click.option('--arn', help='Lambda function ARN (arn:aws:lambda:[region]:[id]:function:[name])')
-@click.option('--name', default='cronit', help='Lambda function name (default is cronit)')
-def sync(arn, name):
+@click.option('--name', default='cronit', help='Lambda function name (Optional, default is cronit)')
+@click.option('--arn', help='Lambda function ARN (Optional, as default will try to determinate by name)')
+def sync(name, arn):
 
-	logger.debug('AWS Lambda Function ARN: %s' % arn)
+	if arn is None:
+		response = lambda_client.get_function(FunctionName=name)
+		logger.debug(response)
+		arn = response['Configuration']['FunctionArn']
+
 	logger.debug('AWS Lambda Function Name: %s' % name)
+	logger.debug('AWS Lambda Function ARN: %s' % arn)
 
 	cronit_rules = events_client.list_rules(NamePrefix='cronit')['Rules']
 	logger.debug(cronit_rules)

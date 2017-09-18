@@ -56,7 +56,8 @@ Create the role **CronitCLIRole** with the following:
                 "events:PutTargets",
                 "events:RemoveTargets",
                 "lambda:AddPermission",
-                "lambda:RemovePermission"
+                "lambda:RemovePermission",
+                "lambda:GetFunction"
             ],
             "Resource": [
                 "arn:aws:events:{region}:{accountId}:rule/*",
